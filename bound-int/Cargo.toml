@@ -1,0 +1,11 @@
+[package]
+name = "bound-int"
+version = "0.1.0"
+authors = ["Saghm Rossi <saghmrossi@gmail.com>"]
+license = "Apache-2.0"
+edition = "2018"
+
+[lib]
+
+[dependencies]
+bound-int-types = { path = "../bound-int-types" }
