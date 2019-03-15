@@ -20,8 +20,5 @@ fn main() {
     print_expr!("3 - 2", Foo_3 - Foo_2);
 
     print_expr!("3 - 1 + 1", Foo_3 - Foo_1 + Foo_1);
-//    print_expr!(
-//        "1 - 1 + 2 - 2 + 3 - 3 - 2 + 3",
-//        Foo_1 - Foo_1 + Foo_2 - Foo_2 + Foo_3 - Foo_3 - Foo_2 + Foo_3
-//    );
+    print_expr!("3 - 1 + 1 - 2 + 2", Foo_3 - Foo_1 + Foo_1 - Foo_2 + Foo_2);
 }
