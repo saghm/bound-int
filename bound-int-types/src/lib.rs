@@ -46,10 +46,12 @@ pub fn bound_int_types(input: TokenStream) -> TokenStream {
         let name_i = format!("{}_{}", name, i);
         let struct_name = format!("__{}_struct", name_i);
         let plus_name = format!("__{}_plus", name_i);
+        let minus_name = format!("__{}_minus", name_i);
 
         let name_i_ident = Ident::new(&name_i, Span::call_site());
         let struct_name_ident = Ident::new(&struct_name, Span::call_site());
         let plus_name_ident = Ident::new(&plus_name, Span::call_site());
+        let minus_name_ident = Ident::new(&minus_name, Span::call_site());
 
         out.extend(quote! {
             // Define the type for the specific value.
@@ -57,8 +59,12 @@ pub fn bound_int_types(input: TokenStream) -> TokenStream {
             struct #struct_name_ident {}
 
             impl #struct_name_ident {
-                fn get_sum<A: #plus_name_ident>(&self, other: A) -> A::Result {
+                fn plus<T: #plus_name_ident>(&self, other: T) -> T::Result {
                     other.sum()
+                }
+
+                fn minus<T: #minus_name_ident>(&self, other: T) -> T::Result {
+                    other.difference()
                 }
             }
 
@@ -84,6 +90,15 @@ pub fn bound_int_types(input: TokenStream) -> TokenStream {
                     Self::Result::get()
                 }
             }
+
+            // Define a trait for values which can be subtracted from this value.
+            trait #minus_name_ident: #name {
+                type Result: #name;
+
+                fn difference(&self) -> Self::Result {
+                    Self::Result::get()
+                }
+            }
         });
 
         // Implement the "plus" traits for the value which won't overflow.
@@ -99,6 +114,26 @@ pub fn bound_int_types(input: TokenStream) -> TokenStream {
 
             out.extend(quote!{
                 impl #plus_impl_ident for #struct_name_ident {
+                    type Result = #result_ident;
+                }
+            });
+        }
+
+        // Implement the "minus" trait for the values which won't underflow.
+        //
+        // For example, if `lower` is 2, `upper` is `10`, and `i` is `6`, then the numbers that can
+        // be subtracted from `6` are `2` through `4`.
+        for minus in lower..=i - lower {
+            let minus_impl = format!("__{}_{}_minus", name, i);
+            let result = format!("__{}_{}_struct", name, i - minus);
+            let minus_concrete = format!("__{}_{}_struct", name, minus);
+
+            let minus_impl_ident = Ident::new(&minus_impl, Span::call_site());
+            let result_ident = Ident::new(&result, Span::call_site());
+            let minus_concrete_ident = Ident::new(&minus_concrete, Span::call_site());
+
+            out.extend(quote!{
+                impl #minus_impl_ident for #minus_concrete_ident {
                     type Result = #result_ident;
                 }
             });
