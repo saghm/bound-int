@@ -45,11 +45,11 @@ pub fn bound_int_types(input: TokenStream) -> TokenStream {
     for i in lower..=upper {
         let name_i = format!("{}_{}", name, i);
         let struct_name = format!("__{}_struct", name_i);
-        let addable_name = format!("__{}_addable", name_i);
+        let plus_name = format!("__{}_plus", name_i);
 
         let name_i_ident = Ident::new(&name_i, Span::call_site());
         let struct_name_ident = Ident::new(&struct_name, Span::call_site());
-        let addable_name_ident = Ident::new(&addable_name, Span::call_site());
+        let plus_name_ident = Ident::new(&plus_name, Span::call_site());
 
         out.extend(quote! {
             // Define the type for the specific value.
@@ -57,7 +57,7 @@ pub fn bound_int_types(input: TokenStream) -> TokenStream {
             struct #struct_name_ident {}
 
             impl #struct_name_ident {
-                fn get_sum<A: #addable_name_ident>(&self, other: A) -> A::Result {
+                fn get_sum<A: #plus_name_ident>(&self, other: A) -> A::Result {
                     other.sum()
                 }
             }
@@ -77,7 +77,7 @@ pub fn bound_int_types(input: TokenStream) -> TokenStream {
             }
 
             // Define a trait for values which can be added to this value.
-            trait #addable_name_ident: #name {
+            trait #plus_name_ident: #name {
                 type Result: #name;
 
                 fn sum(&self) -> Self::Result {
@@ -86,19 +86,19 @@ pub fn bound_int_types(input: TokenStream) -> TokenStream {
             }
         });
 
-        // Implement the "addable" traits for the value which won't overflow.
+        // Implement the "plus" traits for the value which won't overflow.
         //
         // For example, if `lower` is 1, `upper` is `10`, and `i` is `6`, then the numbers that can
         // be added to `6` are `1` through `4`.
-        for addable in lower..=upper - i {
-            let addable_impl = format!("__{}_{}_addable", name, addable);
-            let result = format!("__{}_{}_struct", name, addable + i);
+        for plus in lower..=upper - i {
+            let plus_impl = format!("__{}_{}_plus", name, plus);
+            let result = format!("__{}_{}_struct", name, plus + i);
 
-            let addable_impl_ident = Ident::new(&addable_impl, Span::call_site());
+            let plus_impl_ident = Ident::new(&plus_impl, Span::call_site());
             let result_ident = Ident::new(&result, Span::call_site());
 
             out.extend(quote!{
-                impl #addable_impl_ident for #struct_name_ident {
+                impl #plus_impl_ident for #struct_name_ident {
                     type Result = #result_ident;
                 }
             });
